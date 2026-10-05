@@ -395,11 +395,11 @@
         <h2>Pošalji upit</h2>
         <p>Ako vas zanima neka slika, želite više informacija ili želite da pošaljete poruku Nikoli Lapiću, možete to učiniti ovde.</p>
       </div>
-      <form class="inquiry-form" action="https://formsubmit.co/nikolalapic48@gmail.com" method="POST">
+      <form class="inquiry-form" id="inquiry-form">
         <input type="hidden" name="_subject" value="Novi upit sa sajta Nikola Lapić">
         <input type="hidden" name="_captcha" value="false">
         <input type="hidden" name="_template" value="table">
-        <input type="hidden" name="_next" value="https://example.com/">
+        <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none" aria-hidden="true">
         <div class="inquiry-fields">
           <label>Ime i prezime
             <input type="text" name="name" autocomplete="name" required placeholder="Vaše ime i prezime">
@@ -412,6 +412,7 @@
           <textarea name="message" rows="6" required placeholder="Napišite svoj upit..."></textarea>
         </label>
         <button class="inquiry-submit" type="submit">Pošalji upit <span>→</span></button>
+        <p class="inquiry-status" id="inquiry-status" role="status" aria-live="polite"></p>
       </form>
     </div>
   </section>
@@ -576,6 +577,45 @@
       button.addEventListener("click", () => openPress(button.dataset.press));
     });
     document.querySelectorAll("[data-close-press]").forEach(button => button.addEventListener("click", closePress));
+
+    const inquiryForm = document.getElementById("inquiry-form");
+    const inquiryStatus = document.getElementById("inquiry-status");
+    if (inquiryForm) {
+      inquiryForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const submitButton = inquiryForm.querySelector("button[type=submit]");
+        const originalText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = "Šaljem…";
+        inquiryStatus.className = "inquiry-status";
+        inquiryStatus.textContent = "";
+
+        try {
+          const payload = Object.fromEntries(new FormData(inquiryForm).entries());
+          const response = await fetch("https://formsubmit.co/ajax/nikolalapic48@gmail.com", {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+          const result = await response.json();
+          if (!response.ok || result.success === false) throw new Error(result.message || "Greška pri slanju.");
+
+          inquiryForm.reset();
+          inquiryStatus.className = "inquiry-status success";
+          inquiryStatus.textContent = "Hvala! Vaš upit je uspešno poslat. Nikola Lapić će vam odgovoriti na navedenu email adresu.";
+        } catch (error) {
+          inquiryStatus.className = "inquiry-status error";
+          inquiryStatus.textContent = "Poruka trenutno nije poslata. Možete je poslati direktno na nikolalapic48@gmail.com.";
+        } finally {
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalText;
+        }
+      });
+    }
+
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && modal.classList.contains("is-open")) closePress();
     });

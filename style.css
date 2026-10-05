@@ -722,3 +722,10 @@ footer p { margin: 0; color: #c8c5bd; font-size: .82rem; }
   .inquiry-fields { grid-template-columns:1fr; gap:0; }
   .inquiry-form { padding:24px; }
 }
+
+
+/* Inquiry form status */
+.inquiry-submit:disabled { opacity: .65; cursor: wait; }
+.inquiry-status { margin: 14px 0 0; min-height: 1.5em; font-size: .95rem; line-height: 1.5; }
+.inquiry-status.success { color: #4f624a; }
+.inquiry-status.error { color: #8b4f45; }
